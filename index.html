@@ -6,70 +6,95 @@
     <title>Instagram Feed Scheduler</title>
     <style>
         body {
+            background: rgba(255, 255, 255, 0.1);
             font-family: Arial, sans-serif;
-            background: linear-gradient(135deg, #f2f2f2, #e6e6e6);
-            margin: 0;
-            padding: 20px;
-        }
-        h1 {
-            text-align: center;
-            color: #333;
+            color: #fff;
+            overflow: hidden;
         }
         .container {
-            max-width: 600px;
-            margin: auto;
-            background: #fff;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(5px);
             padding: 20px;
-            margin-top: 20px;
+            border-radius: 15px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
         }
-        label {
-            display: block;
-            margin-bottom: 8px;
-        }
-        input[type="text"], input[type="datetime-local"] {
-            width: 100%;
+        input, button, select {
+            border-radius: 5px;
             padding: 10px;
-            margin-bottom: 20px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+            margin: 10px 0;
+            border: none;
+            outline: none;
         }
         button {
-            background-color: #4CAF50;
-            color: white;
-            padding: 10px;
-            border: none;
-            border-radius: 4px;
             cursor: pointer;
-            width: 100%;
+            background: linear-gradient(90deg, #ff7e5f, #feb47b);
+            transition: background 0.3s;
         }
         button:hover {
-            background-color: #45a049;
+            background: linear-gradient(90deg, #feb47b, #ff7e5f);
         }
     </style>
 </head>
 <body>
-    <h1>Instagram Feed Scheduler</h1>
     <div class="container">
-        <label for="postTitle">Post Title:</label>
-        <input type="text" id="postTitle" placeholder="Enter your post title">
-
-        <label for="postDate">Schedule Date and Time:</label>
-        <input type="datetime-local" id="postDate">
-
-        <button onclick="schedulePost()">Schedule Post</button>
+        <h1>Instagram Feed Scheduler</h1>
+        <form id="schedulerForm">
+            <input type="text" id="name" placeholder="Nama Pengisi" required>
+            <input type="text" id="contentTitle" placeholder="Judul Konten" required>
+            <input type="datetime-local" id="postingDateTime" required>
+            <button type="submit">Schedule</button>
+        </form>
+        <div id="feedsDisplay"></div>
+        <div id="countdown"></div>
     </div>
     <script>
-        function schedulePost() {
-            const title = document.getElementById('postTitle').value;
-            const date = document.getElementById('postDate').value;
-            if (title && date) {
-                alert(`Post titled \\\"${title}\\\" scheduled for ${date}`);
-            } else {
-                alert('Please fill in both fields.');
-            }
+        const form = document.getElementById('schedulerForm');
+        const feedsDisplay = document.getElementById('feedsDisplay');
+        const countdown = document.getElementById('countdown');
+        let feeds = JSON.parse(localStorage.getItem('feeds')) || [];
+
+        form.onsubmit = (e) => {
+            e.preventDefault();
+            const name = document.getElementById('name').value;
+            const contentTitle = document.getElementById('contentTitle').value;
+            const postingDateTime = new Date(document.getElementById('postingDateTime').value);
+            const color = getColor();
+
+            feeds.push({ name, contentTitle, postingDateTime, color });
+            localStorage.setItem('feeds', JSON.stringify(feeds));
+            displayFeeds();
+            form.reset();
+            startCountdown(postingDateTime);
+        };
+
+        function getColor() {
+            const colors = ['#FFD700', '#7B68EE', '#00BFFF']; // kuning-ungu, abu-ungu, kuning-biru
+            return colors[feeds.length % colors.length];
         }
+
+        function displayFeeds() {
+            feedsDisplay.innerHTML = '';
+            feeds.forEach((feed, index) => {
+                const div = document.createElement('div');
+                div.style.backgroundColor = feed.color;
+                div.innerHTML = `<strong>${feed.name}</strong>: ${feed.contentTitle} at ${feed.postingDateTime}`;
+                feedsDisplay.appendChild(div);
+            });
+        }
+
+        function startCountdown(date) {
+            const interval = setInterval(() => {
+                const now = new Date();
+                const diff = date - now;
+                if (diff <= 0) {
+                    clearInterval(interval);
+                    countdown.innerHTML = 'Time to post!';
+                } else {
+                    countdown.innerHTML = Math.ceil(diff / 1000) + ' seconds remaining';
+                }
+            }, 1000);
+        }
+
+        displayFeeds(); // Init display
     </script>
 </body>
 </html>
